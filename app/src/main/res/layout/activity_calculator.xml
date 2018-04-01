@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="16dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="16dp"
+    tools:context="com.zrs.yuh.rs.Calculator">
+
+    <TextView
+        android:id="@+id/TVExperimentalData"
+        android:paddingTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/TExperimentalData"
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold|italic" />
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <EditText
+            android:id="@+id/ExperimentalData"
+            android:paddingTop="10dp"
+            android:textSize="15sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/calculate_num" />
+    </android.support.design.widget.TextInputLayout>
+    <TextView
+        android:id="@+id/TVMinimumScaleValue"
+        android:paddingTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/TMinimumScaleValue"
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold|italic" />
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <EditText
+            android:id="@+id/MinimumScaleValue"
+            android:paddingTop="10dp"
+            android:textSize="15sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="部分游标卡尺最小刻度为0.01cm" />
+    </android.support.design.widget.TextInputLayout>
+
+    <Button
+        android:id="@+id/Calculate"
+        android:layout_marginTop="10dp"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/course_info_2"
+        android:elevation="4dp"
+        android:text="@string/calculate_results"
+        android:textColor="@android:color/white"
+        android:textSize="18sp" />
+
+    <TextView
+        android:paddingTop="20dp"
+        android:id="@+id/UncertaintyResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/TVUncertaintyResult"
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold|italic" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/uncertainty_results"
+        android:paddingTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    </ScrollView>
+
+</LinearLayout>

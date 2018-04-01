@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CourseTable">
+        <attr name="totalDays" format="integer" />
+        <attr name="totalJC" format="integer" />
+    </declare-styleable>
+</resources>

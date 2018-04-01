@@ -1,0 +1,105 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.xrs.yuh.myapplication.MainActivity">
+
+
+    <item
+        android:id="@+id/refresh_2"
+        android:orderInCategory="100"
+        android:title="登陆"
+        app:showAsAction="ifRoom" />
+
+
+    <item
+        android:id="@+id/week_1"
+        android:orderInCategory="100"
+        android:title="@string/week_1"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_2"
+        android:orderInCategory="100"
+        android:title="@string/week_2"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_3"
+        android:orderInCategory="100"
+        android:title="@string/week_3"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_4"
+        android:orderInCategory="100"
+        android:title="@string/week_4"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_5"
+        android:orderInCategory="100"
+        android:title="@string/week_5"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_6"
+        android:orderInCategory="100"
+        android:title="@string/week_6"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_7"
+        android:orderInCategory="100"
+        android:title="@string/week_7"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_8"
+        android:orderInCategory="100"
+        android:title="@string/week_8"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_9"
+        android:orderInCategory="100"
+        android:title="@string/week_9"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_10"
+        android:orderInCategory="100"
+        android:title="@string/week_10"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_11"
+        android:orderInCategory="100"
+        android:title="@string/week_11"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_12"
+        android:orderInCategory="100"
+        android:title="@string/week_12"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_13"
+        android:orderInCategory="100"
+        android:title="@string/week_13"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_14"
+        android:orderInCategory="100"
+        android:title="@string/week_14"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_15"
+        android:orderInCategory="100"
+        android:title="@string/week_15"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_16"
+        android:orderInCategory="100"
+        android:title="@string/week_16"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_17"
+        android:orderInCategory="100"
+        android:title="@string/week_17"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/week_18"
+        android:orderInCategory="100"
+        android:title="@string/week_18"
+        app:showAsAction="never" />
+
+</menu>
