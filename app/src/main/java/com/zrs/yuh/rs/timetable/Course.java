@@ -39,7 +39,7 @@ public class Course implements Serializable {
     public Course() {
     }
 
-    int getJieci() {
+    public int getJieci() {
         return jieci;
     }
 
@@ -47,7 +47,7 @@ public class Course implements Serializable {
         this.jieci = jieci;
     }
 
-    int getDay() {
+    public int getDay() {
         return day;
     }
 
@@ -89,7 +89,7 @@ public class Course implements Serializable {
         this.ClassName = ClassName;
     }
 
-    int getSpanNum() {
+    public int getSpanNum() {
         return spanNum;
     }
 
@@ -134,7 +134,7 @@ public class Course implements Serializable {
         ClassTypeName = classTypeName;
     }
 
-    String getClassAll() {
+    public String getClassAll() {
         return ClassAll;
     }
 

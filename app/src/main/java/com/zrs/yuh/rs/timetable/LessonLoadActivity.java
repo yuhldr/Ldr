@@ -15,9 +15,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.zrs.yuh.rs.Data;
+import com.zrs.yuh.rs.Function.Utils;
 import com.zrs.yuh.rs.R;
-import com.zrs.yuh.rs.Utils;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -50,6 +49,7 @@ public class LessonLoadActivity extends AppCompatActivity {
     protected static final int LESSON_0 = 0;
     protected static final int LESSON_URL = 1;
     protected static final int LESSON = 2;
+    protected static final int LATE = 3;
 
     private ProgressDialog progressDialog;
 
@@ -78,10 +78,10 @@ public class LessonLoadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson);
 
-
-        int NowWeek = now_week();
         List<Course> list_test = Utils.getCourseInfo(this,"week_1");
+
         if(list_test!=null){
+            int NowWeek = now_week();
             Toast.makeText(LessonLoadActivity.this, "当前周为第" + NowWeek + "周", Toast.LENGTH_SHORT).show();
             List<Course> list = Utils.getCourseInfo(this,"week_"+NowWeek);
             table(list);
@@ -202,7 +202,7 @@ public class LessonLoadActivity extends AppCompatActivity {
 
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            String lesson_url = "error";
+            String lesson_url;
             switch (msg.what) {
                 case LESSON_0:
                     String code = (String) msg.obj;
@@ -214,14 +214,16 @@ public class LessonLoadActivity extends AppCompatActivity {
                     lesson_url = (String) msg.obj;
 
                     Log.d("lesson", lesson_url);
+                    List<Course> list1 = Utils.getCourseInfo(LessonLoadActivity.this,"cookies");
+                    if(list1!=null) {
 
-                    String Referer = "http://jwk.lzu.edu.cn/academic/listLeft.do";
-                    final Data session_Application = (Data) getApplication();
-                    String session = session_Application.getData_s();
+                        String session = list1.get(0).getClassRoomName();
+                        String Referer = "http://jwk.lzu.edu.cn/academic/listLeft.do";
 
-                    //解析出来带有课程表的网页源码
-                    Get_lesson(lesson_url, session, Referer);
 
+                        //解析出来带有课程表的网页源码
+                        Get_lesson(lesson_url, session, Referer);
+                    }
                     break;
 
                 case LESSON:
@@ -230,6 +232,12 @@ public class LessonLoadActivity extends AppCompatActivity {
                     write_file(lesson_code,"网页源码");
                     write_file_sdcard("兰州大学课程表错误信息","兰大课程表错误信息请将此文件发送至QQ1946991005.html",lesson_code);
                     Get_Course(lesson_code);
+                    break;
+
+                case LATE:
+
+
+
                     break;
 
                 default:
@@ -242,13 +250,15 @@ public class LessonLoadActivity extends AppCompatActivity {
 
         showProgressDialog(this,"课程表数据导入中……","课程表数据导入超时！，检查网络后重新登陆");
 
-        final Data session_app = (Data) getApplication();
-        String session = session_app.getData_s();
+        List<Course> list1 = Utils.getCourseInfo(LessonLoadActivity.this,"cookies");
+        if(list1!=null){
 
-        String url = "http://jwk.lzu.edu.cn/academic/listLeft.do";
-        String Referer = "http://jwk.lzu.edu.cn/academic/showHeader.do";
-        Get_lesson0(url, session, Referer);
+            String session = list1.get(0).getClassRoomName();
 
+            String url = "http://jwk.lzu.edu.cn/academic/listLeft.do";
+            String Referer = "http://jwk.lzu.edu.cn/academic/showHeader.do";
+            Get_lesson0(url, session, Referer);
+        }
     }
     public void ChangeWeek(String week_name){
         Toast.makeText(LessonLoadActivity.this,"第" + week_name.substring(5) + "周",Toast.LENGTH_LONG).show();
@@ -290,6 +300,7 @@ public class LessonLoadActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
+                    assert response.body() != null;
                     String results = response.body().string();
 
                     if (!Objects.equals(results, "")) {
@@ -307,8 +318,10 @@ public class LessonLoadActivity extends AppCompatActivity {
     public void get_lesson_url(String listLeft_code) {
 
         Document doc = Jsoup.parse(listLeft_code);
+
         if(doc.getElementById("li13")==null){ //验证是否session失效，防止请求不到数据闪退
             Toast.makeText(LessonLoadActivity.this,"验证码已失效，请退出重新登陆后刷新",Toast.LENGTH_LONG).show();
+
         }else{
             String lesson_url0 = doc.getElementById("li13").select("a").first().attr("href");
             Log.d("课程表链接（部分）======》", lesson_url0);
@@ -324,10 +337,10 @@ public class LessonLoadActivity extends AppCompatActivity {
             msg.obj = lesson_url;
             handler.sendMessage(msg);
         }
-
     }
 
     public void Get_lesson(String url, String session, String Referer) {
+
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
                 .connectTimeout(100, TimeUnit.SECONDS) //设置连接超时
@@ -351,13 +364,14 @@ public class LessonLoadActivity extends AppCompatActivity {
 
         okHttpClient.newCall(lesson1_response).enqueue(new Callback() {
             @Override
-            public void onFailure(okhttp3.Call call, @NonNull IOException e) {
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
                 Log.i("lesson_callFailure", e.toString());
             }
 
             @Override
-            public void onResponse(okhttp3.Call call, @NonNull Response response) throws IOException {
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
+                    assert response.body() != null;
                     String results = response.body().string();
 //                    Log.i("info_name_success", results);
 
@@ -389,9 +403,14 @@ public class LessonLoadActivity extends AppCompatActivity {
 
         StringBuilder lesson_s = new StringBuilder();
 
+        StringBuilder error_course_name = new StringBuilder();
+
         for (int i = 0; i < course_n; i++) {
 
             course_name[i] = lessons.get(i).select("td").get(2).text();
+            if (course_name[i].length()>8){
+                course_name[i] = course_name[i].substring(0,7) + "…";
+            }
 //            Log.d("课程名：", course_name[i]);
 
             Elements course_teachers = lessons.get(i).select("td").get(3).select("a");
@@ -413,7 +432,7 @@ public class LessonLoadActivity extends AppCompatActivity {
 
             Elements net = lessons.get(i).select("td").get(9).select("table");
             if (net.isEmpty()){
-                System.out.println("网络共享课：“"+course_name[i]+"”已忽略");
+                error_course_name.append("网络共享课：").append(course_name[i]).append("，");
             }else {
                 Elements week_num = net.select("tr");
                 int week_n = week_num.size();
@@ -423,7 +442,7 @@ public class LessonLoadActivity extends AppCompatActivity {
                 String course_time[][] = new String[course_n][week_n];
                 String course_room[][] = new String[course_n][week_n];
 
-                String course = "每周" + week_n + "节课:\n";
+                String course;
                 String lesson_teacher = course_teacher[i];
                 String lesson_name = course_name[i];
                 String lesson_credit = course_credit[i];
@@ -434,8 +453,16 @@ public class LessonLoadActivity extends AppCompatActivity {
                                 course_teacher[i] + "\n" +
                                 "学分：" + course_credit[i] + "\n";
                 for (int k = 0; k < week_n; k++) {
+
                     course_weeks[i][k] = week_num.get(k).select("td").get(0).text();
+                    if (course_weeks[i][k].isEmpty()) {
+                        course_weeks[i][k] = "暂无";
+                    }
                     course_week_s = odd_even_week(course_weeks[i][k]);
+                    if (course_week_s.size()==0){
+                        error_course_name.append(course_name[i]).append("，");
+                        continue;
+                    }
                     String lesson_week = course_weeks[i][k];
 
 //                Log.d("上课周数：");
@@ -515,9 +542,12 @@ public class LessonLoadActivity extends AppCompatActivity {
 
                 }
 
-
             }
         }
+        if (!error_course_name.toString().equals("")){
+            Toast.makeText(LessonLoadActivity.this,error_course_name + "已经忽略导入",Toast.LENGTH_LONG).show();
+        }
+
         Log.d("lesson===========>", lesson_s.toString());
     }
 
@@ -551,8 +581,6 @@ public class LessonLoadActivity extends AppCompatActivity {
 
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(LessonLoadActivity.this,"SDCard不存在或不可写\n请前往系统设置中授予该软件，读写手机储存权限",Toast.LENGTH_SHORT).show();
-
         }
     }
     public ArrayList odd_even_week(String odd_even_week_code){
@@ -578,30 +606,35 @@ public class LessonLoadActivity extends AppCompatActivity {
         }
         for (int d =0; d < course_week_d.length ; d++) {
             String course_week_g[] = course_week_d[d].split("-");
-            if (course_week_g.length == 1) {
-                course_weeks.add(Integer.parseInt(course_week_g[0]));
-            } else {
-                int week_min = Integer.parseInt(course_week_g[0]);
-                int week_max = Integer.parseInt(course_week_g[1]) + 1;
-                int odd_min = 0;
+            Pattern pattern_num = Pattern.compile("[^0-9]");
+            Matcher matcher_num = pattern_num.matcher(course_week_d[d]);
+            String all = matcher_num.replaceAll("");
+            if (!all.isEmpty()) {
+                if (course_week_g.length == 1) {
+                    course_weeks.add(Integer.parseInt(course_week_g[0]));
+                } else {
+                    int week_min = Integer.parseInt(course_week_g[0]);
+                    int week_max = Integer.parseInt(course_week_g[1]) + 1;
+                    int odd_min;
 
-                if (week_min%2==0){
-                    odd_min = week_min + 1;
-                }else {
-                    odd_min = week_min;
-                }
+                    if (week_min % 2 == 0) {
+                        odd_min = week_min + 1;
+                    } else {
+                        odd_min = week_min;
+                    }
 
-                if (odd_week.contains(d)){  //是单周就只放单数
-                    for (int w = odd_min; w < week_max; w+=2) {
-                        course_weeks.add(w);
-                    }
-                }else if (even_week.contains(d)){  //是双周就只放双数
-                    for (int w = odd_min+1; w < week_max; w+=2) {
-                        course_weeks.add(w);
-                    }
-                }else {
-                    for (int w = week_min; w < week_max; w++) {
-                        course_weeks.add(w);
+                    if (odd_week.contains(d)) {  //是单周就只放单数
+                        for (int w = odd_min; w < week_max; w += 2) {
+                            course_weeks.add(w);
+                        }
+                    } else if (even_week.contains(d)) {  //是双周就只放双数
+                        for (int w = odd_min + 1; w < week_max; w += 2) {
+                            course_weeks.add(w);
+                        }
+                    } else {
+                        for (int w = week_min; w < week_max; w++) {
+                            course_weeks.add(w);
+                        }
                     }
                 }
             }
@@ -649,9 +682,13 @@ public class LessonLoadActivity extends AppCompatActivity {
         int weeks = 1;
         List<Course> startWeekDate = Utils.getCourseInfo(this,"startWeekDate");
         if(startWeekDate != null){
+            int startDay = startWeekDate.get(0).getJieci();
             int startWeek = startWeekDate.get(0).getStartWeek();
-            int todayWeek = Calendar.getInstance().get(Calendar.WEEK_OF_YEAR);
-            weeks = todayWeek - startWeek;
+            int today = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+            weeks = (today - startDay)/7 + startWeek;
+            Log.d("第几周：", "=========>" + weeks);
+            Log.d("当前周为：" + startWeekDate.get(0).getStartWeek() ,"=========>.>>> + 第几天" + startWeekDate.get(0).getJieci());
+
         }
         return weeks;
 
@@ -672,10 +709,13 @@ public class LessonLoadActivity extends AppCompatActivity {
         int day_week = Integer.parseInt(num.substring(4));
 
         Calendar c_now= Calendar.getInstance();
-        c_now.set(year, month-1,dayOfMonth);
-        int startWeek = c_now.get(Calendar.WEEK_OF_YEAR) - day_week;
+        c_now.set(year, month-1,dayOfMonth);  //一月为0
+        // 计算载入课表时的（不一定为周一），那一周的，周一为此年的第几天；DAY_OF_WEEK周日为1
+        int startday = c_now.get(Calendar.DAY_OF_YEAR) - (c_now.get(Calendar.DAY_OF_WEEK)-2);
+
         Course c = new Course();
-        c.setStartWeek(startWeek);
+        c.setJieci(startday);
+        c.setStartWeek(day_week);
         startWeekDate.add(c);
         Utils.saveCourseInfo(LessonLoadActivity.this,"startWeekDate",startWeekDate);
     }

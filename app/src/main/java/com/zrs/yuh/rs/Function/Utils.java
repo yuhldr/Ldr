@@ -1,4 +1,4 @@
-package com.zrs.yuh.rs;
+package com.zrs.yuh.rs.Function;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -46,7 +46,7 @@ public class Utils {
 
         String number = sp.getString("username",null);
         String password = sp.getString("pwd",null);
-        Map<String,String> uerMap = new HashMap<String,String>();
+        Map<String,String> uerMap = new HashMap<>();
         uerMap.put("number",number);
         uerMap.put("pwd",password);
 

@@ -22,9 +22,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.zrs.yuh.rs.Data;
+import com.zrs.yuh.rs.Function.Utils;
 import com.zrs.yuh.rs.R;
-import com.zrs.yuh.rs.Utils;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -87,49 +86,45 @@ public class Lesson2LoadActivity extends AppCompatActivity {
     private EditText et_user;
     private EditText et_password;
     private EditText et_Captcha;
-    int m = 0;
+
     @SuppressLint("HandlerLeak")
     public Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            String lesson_url = "error";
-            final Data session_app = (Data) getApplication();
-            String session = session_app.getData_s_2();
-            Log.d("test_set_session",session_app.getData_s_2());
+            String lesson_url;
+
+
 
             switch (msg.what) {
 
                 case CHANGE_UI:
 
                     //必须先实例化，再进行对话框UI更新
-                    View view = LayoutInflater.from(Lesson2LoadActivity.this).inflate(R.layout.dialog_login,null); //找到并对自定义布局中的控件进行操作的示例
+                    @SuppressLint("InflateParams") View view = LayoutInflater.from(Lesson2LoadActivity.this).inflate(R.layout.dialog_login,null); //找到并对自定义布局中的控件进行操作的示例
 
                     byte[] Picture = (byte[]) msg.obj; //使用BitmapFactory工厂，把字节数组转化为bitmap
                     Bitmap bitmap = BitmapFactory.decodeByteArray(Picture, 0, Picture.length);
                     dismissProgressDialog();
+
+                    et_user = view.findViewById(R.id.et_user_2);
+                    et_password = view.findViewById(R.id.et_password_2);
+                    et_Captcha = view.findViewById(R.id.et_Captcha_2);
 
                     ImageView iv_Captcha_2 = view.findViewById(R.id.iv_Captcha_2);
                     iv_Captcha_2.setImageBitmap(bitmap);
                     iv_Captcha_2.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-
+//                            SaveView();  // 刷新前，保存密码
                             get_captcha();
                             dialog.dismiss();
 
                         }
                     });
 
-                    et_user = view.findViewById(R.id.et_user_2);
-                    et_password = view.findViewById(R.id.et_password_2);
-                    et_Captcha = view.findViewById(R.id.et_Captcha_2);
-
-                    Map<String, String> userInfo = Utils.getUserInfo(Lesson2LoadActivity.this,"2_user_password");
-                    if (userInfo != null) {
-                        et_user.setText(userInfo.get("number"));
-                        et_password.setText(userInfo.get("pwd"));
-                    }
+                    // 获取输入框密码，存储。
+                    SaveView();
 
                     //创建对话框
                     dialog = new AlertDialog.Builder(Lesson2LoadActivity.this).create();
@@ -165,15 +160,22 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
                 case ERROR_SIGN_IN:
 
+                    String error_info = (String)msg.obj;
+                    Toast.makeText(Lesson2LoadActivity.this,error_info,Toast.LENGTH_LONG).show();
                     get_captcha();
                     break;
 
                 case SUCCESS_SIGN_IN:
 
                     //TODO，找到名字
-                    String url_name_2 = "http://jwk.lzu.edu.cn/academic/showHeader.do";
-                    String Referer_2 = "http://jwk.lzu.edu.cn/academic/index_new.jsp";
-                    Get_String(url_name_2,session,Referer_2);
+                    List<Course> list_in = Utils.getCourseInfo(Lesson2LoadActivity.this,"2_cookies");
+                    if (list_in!=null) {
+                        String session_in = list_in.get(0).getClassRoomName();
+
+                        String url_name_2 = "http://jwk.lzu.edu.cn/academic/showHeader.do";
+                        String Referer_2 = "http://jwk.lzu.edu.cn/academic/index_new.jsp";
+                        Get_String(url_name_2, session_in, Referer_2);
+                    }
                     break;
 
                 case NAME:
@@ -190,9 +192,15 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
 
                     //TODO，侧栏中找到课程表登陆部分链接
-                    String url = "http://jwk.lzu.edu.cn/academic/listLeft.do";
-                    String Referer = "http://jwk.lzu.edu.cn/academic/showHeader.do";
-                    Get_lesson0(url, session, Referer);
+                    List<Course> list_name = Utils.getCourseInfo(Lesson2LoadActivity.this,"2_cookies");
+                    if (list_name!=null) {
+
+                        String session_name = list_name.get(0).getClassRoomName();
+
+                        String url = "http://jwk.lzu.edu.cn/academic/listLeft.do";
+                        String Referer = "http://jwk.lzu.edu.cn/academic/showHeader.do";
+                        Get_lesson0(url, session_name, Referer);
+                    }
                     break;
 
                 case LESSON_0:
@@ -208,11 +216,14 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
                     Log.d("lesson", lesson_url);
 
-                    String Referer0 = "http://jwk.lzu.edu.cn/academic/listLeft.do";
+                    List<Course> list_url = Utils.getCourseInfo(Lesson2LoadActivity.this,"2_cookies");
+                    if (list_url!=null) {
 
-                    //TODO 解析出来带有课程表的网页源码
-                    Get_lesson(lesson_url, session, Referer0);
-
+                        String session_url = list_url.get(0).getClassRoomName();
+                        String Referer0 = "http://jwk.lzu.edu.cn/academic/listLeft.do";
+                        //TODO 解析出来带有课程表的网页源码
+                        Get_lesson(lesson_url, session_url, Referer0);
+                    }
                     break;
 
                 case LESSON:
@@ -234,7 +245,6 @@ public class Lesson2LoadActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson2);
-
 
         List<Course> list1 = Utils.getCourseInfo(this,"2_week_1");
         if(list1==null){
@@ -344,12 +354,20 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
             default:
                 break;
-
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    public void SaveView(){
+
+
+        Map<String, String> userInfo = Utils.getUserInfo(Lesson2LoadActivity.this,"2_user_password");
+        if (userInfo != null) {
+            et_user.setText(userInfo.get("number"));
+            et_password.setText(userInfo.get("pwd"));
+        }
+    }
     public void get_captcha() {
 
         showProgressDialog(this,"验证码加载中……","验证码加载超时！，检查网络后重新登陆");
@@ -387,6 +405,7 @@ public class Lesson2LoadActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
 
+                assert response.body() != null;
                 byte[] byte_image = response.body().bytes();
                 Message msg = new Message();
                 msg.what = CHANGE_UI;
@@ -406,8 +425,12 @@ public class Lesson2LoadActivity extends AppCompatActivity {
                 Log.d("set_cookies", Set_Cookies);
                 JSESSIONID = Set_Cookies;
 
-                final Data session_app = (Data) getApplication();
-                session_app.setData_s_2(JSESSIONID);
+                ArrayList session_list = new ArrayList();
+                Course course_list = new Course();
+
+                course_list.setClassRoomName(JSESSIONID);
+                session_list.add(course_list);
+                Utils.saveCourseInfo(Lesson2LoadActivity.this,"2_cookies",session_list);
 
             }
         });
@@ -461,15 +484,12 @@ public class Lesson2LoadActivity extends AppCompatActivity {
                     String results = response.body().string();
                     Log.i("info_call2success", results);
 
-                    String result = "";
+                    String result;
                     Document doc = Jsoup.parse(results);
                     Elements elements = doc.getElementsByClass("error");
                     //错误提示： 您输入的验证码不正确(密码可能也不正确！!
                     // 错误提示： 密码不匹配!
                     result = elements.text();
-
-//                        Elements elements = doc.select("body");
-//                        String result = elements.get(0).text();
 
                     Message msg = new Message();
                     if (!Objects.equals(result, "")) {
@@ -479,7 +499,6 @@ public class Lesson2LoadActivity extends AppCompatActivity {
                     } else {
                         Log.d("================", "成功");
                         msg.what = SUCCESS_SIGN_IN;
-                        msg.obj = result;
                     }
 
                     handler.sendMessage(msg);
@@ -652,13 +671,14 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
         okHttpClient.newCall(lesson1_response).enqueue(new Callback() {
             @Override
-            public void onFailure(okhttp3.Call call, @NonNull IOException e) {
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
                 Log.i("lesson_callFailure", e.toString());
             }
 
             @Override
-            public void onResponse(okhttp3.Call call, @NonNull Response response) throws IOException {
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful()) {
+                    assert response.body() != null;
                     String results = response.body().string();
 //                    Log.i("info_name_success", results);
 
@@ -689,10 +709,14 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
 
         StringBuilder lesson_s = new StringBuilder();
+        String error_course_name = "";
 
         for (int i = 0; i < course_n; i++) {
 
             course_name[i] = lessons.get(i).select("td").get(2).text();
+            if (course_name[i].length()>8){
+                course_name[i] = course_name[i].substring(0,7) + "…";
+            }
 //            Log.d("课程名：", course_name[i]);
 
             Elements course_teachers = lessons.get(i).select("td").get(3).select("a");
@@ -714,7 +738,7 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
             Elements net = lessons.get(i).select("td").get(9).select("table");
             if (net.isEmpty()) {
-                System.out.println("网络共享课：“" + course_name[i] + "”已忽略");
+                error_course_name = error_course_name + "网络共享课："+course_name[i] + "，";
             } else {
                 Elements week_num = net.select("tr");
                 int week_n = week_num.size();
@@ -724,7 +748,7 @@ public class Lesson2LoadActivity extends AppCompatActivity {
                 String course_time[][] = new String[course_n][week_n];
                 String course_room[][] = new String[course_n][week_n];
 
-                String course = "每周" + week_n + "节课:\n";
+                String course;
                 String lesson_teacher = course_teacher[i];
                 String lesson_name = course_name[i];
                 String lesson_credit = course_credit[i];
@@ -739,6 +763,10 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
                     //TODO 分辨出上课的具体周数
                     course_week_s = odd_even_week(course_weeks[i][k]);
+                    if (course_week_s.size()==0){
+                        error_course_name = error_course_name + course_name[i] + "，";
+                        continue;
+                    }
                     String lesson_week = course_weeks[i][k];
 
 //                Log.d("上课周数：");
@@ -822,6 +850,10 @@ public class Lesson2LoadActivity extends AppCompatActivity {
 
             }
         }
+        if (error_course_name!=""){
+            Toast.makeText(Lesson2LoadActivity.this,error_course_name + "已经忽略导入",Toast.LENGTH_LONG).show();
+
+        }
         Log.d("lesson===========>", lesson_s.toString());
     }
 
@@ -883,30 +915,35 @@ public class Lesson2LoadActivity extends AppCompatActivity {
         }
         for (int d = 0; d < course_week_d.length; d++) {
             String course_week_g[] = course_week_d[d].split("-");
-            if (course_week_g.length == 1) {
-                course_weeks.add(Integer.parseInt(course_week_g[0]));
-            } else {
-                int week_min = Integer.parseInt(course_week_g[0]);
-                int week_max = Integer.parseInt(course_week_g[1]) + 1;
-                int odd_min = 0;
-
-                if (week_min % 2 == 0) {
-                    odd_min = week_min + 1;
+            Pattern pattern_num = Pattern.compile("[^0-9]");
+            Matcher matcher_num = pattern_num.matcher(course_week_d[d]);
+            String all = matcher_num.replaceAll("");
+            if (!all.isEmpty()) {
+                if (course_week_g.length == 1) {
+                    course_weeks.add(Integer.parseInt(course_week_g[0]));
                 } else {
-                    odd_min = week_min;
-                }
+                    int week_min = Integer.parseInt(course_week_g[0]);
+                    int week_max = Integer.parseInt(course_week_g[1]) + 1;
+                    int odd_min = 0;
 
-                if (odd_week.contains(d)) {  //是单周就只放单数
-                    for (int w = odd_min; w < week_max; w += 2) {
-                        course_weeks.add(w);
+                    if (week_min % 2 == 0) {
+                        odd_min = week_min + 1;
+                    } else {
+                        odd_min = week_min;
                     }
-                } else if (even_week.contains(d)) {  //是双周就只放双数
-                    for (int w = odd_min + 1; w < week_max; w += 2) {
-                        course_weeks.add(w);
-                    }
-                } else {
-                    for (int w = week_min; w < week_max; w++) {
-                        course_weeks.add(w);
+
+                    if (odd_week.contains(d)) {  //是单周就只放单数
+                        for (int w = odd_min; w < week_max; w += 2) {
+                            course_weeks.add(w);
+                        }
+                    } else if (even_week.contains(d)) {  //是双周就只放双数
+                        for (int w = odd_min + 1; w < week_max; w += 2) {
+                            course_weeks.add(w);
+                        }
+                    } else {
+                        for (int w = week_min; w < week_max; w++) {
+                            course_weeks.add(w);
+                        }
                     }
                 }
             }
@@ -953,15 +990,13 @@ public class Lesson2LoadActivity extends AppCompatActivity {
     public int now_week() {
 
         int weeks = 0 ;
-        List<Course> startWeekDate = Utils.getCourseInfo(this, "2_startWeekDate");
-        if (startWeekDate != null) {
+        List<Course> startWeekDate = Utils.getCourseInfo(this,"2_startWeekDate");
+        if(startWeekDate != null){
+            int startDay = startWeekDate.get(0).getJieci();
             int startWeek = startWeekDate.get(0).getStartWeek();
-            int todayWeek = Calendar.getInstance().get(Calendar.WEEK_OF_YEAR);
-            weeks = todayWeek - startWeek;
-        }else {
-            Toast.makeText(Lesson2LoadActivity.this,"数据已损坏，请退出后，重新登录",Toast.LENGTH_LONG).show();
+            int today = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+            weeks = (today - startDay)/7 + startWeek;
         }
-
         return weeks;
 
     }
@@ -980,11 +1015,14 @@ public class Lesson2LoadActivity extends AppCompatActivity {
         String num = Pattern.compile("[^0-9]").matcher(lessons.select("span").text()).replaceAll("").trim();
         int day_week = Integer.parseInt(num.substring(4));
 
-        Calendar c_now = Calendar.getInstance();
-        c_now.set(year, month - 1, dayOfMonth);
-        int startWeek = c_now.get(Calendar.WEEK_OF_YEAR) - day_week;
+        Calendar c_now= Calendar.getInstance();
+        c_now.set(year, month-1,dayOfMonth);  //一月为0
+        // 计算载入课表时的（不一定为周一），那一周的，周一为此年的第几天；DAY_OF_WEEK周日为1
+        int startday = c_now.get(Calendar.DAY_OF_YEAR) - (c_now.get(Calendar.DAY_OF_WEEK)-2);
+
         Course c = new Course();
-        c.setStartWeek(startWeek);
+        c.setJieci(startday);
+        c.setStartWeek(day_week);
         startWeekDate.add(c);
         Utils.saveCourseInfo(Lesson2LoadActivity.this, "2_startWeekDate", startWeekDate);
     }

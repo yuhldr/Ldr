@@ -58,7 +58,7 @@ public class CourseTableView extends RelativeLayout {
     /**
      * 保存View 方便Remove
      */
-    private List<View> myCacheViews = new ArrayList<View>();
+    private List<View> myCacheViews = new ArrayList<>();
 
     /**
      * 第一行的高度
@@ -216,8 +216,6 @@ public class CourseTableView extends RelativeLayout {
 
                 @Override
                 public void onClick(View v) {
-//                    if (onCourseItemClickListener != null)
-//                        onCourseItemClickListener.onCourseItemClick((TextView) v, jieci, day, c.getClassAll());
                     showCouseDetails(c,activity);
 
                 }
@@ -241,10 +239,10 @@ public class CourseTableView extends RelativeLayout {
         String room_text = "上课地点：" + course.getClassRoomName();
         String week = "上课时间：" + course.getClassWeek();
         String All = type_text+"\n"+teacher_text+room_text+"\n"+week;
-        
 
         builder.setTitle(course.getClassName());
         builder.setMessage(All);
+
         AlertDialog dialog = builder.create();
         dialog.show();
 
@@ -294,8 +292,6 @@ public class CourseTableView extends RelativeLayout {
 
     /**
      * 获取以今天为基准 ，星期一到星期日在这个月中是几号
-     *
-     * @return
      */
     private String[] getOneWeekDatesOfMonth() {
         Calendar toDayCal = Calendar.getInstance();

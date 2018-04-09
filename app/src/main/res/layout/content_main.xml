@@ -4,11 +4,69 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:rowCount="13"
-    android:columnCount="8"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="20dp"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.zrs.yuh.rs.MainActivity"
     tools:showIn="@layout/app_bar_main">
+
+
+
+    <TextView
+        android:id="@+id/tv_today_table0"
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold"
+        android:text="今日课程"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <ScrollView
+        android:id="@+id/table"
+        android:layout_below="@id/tv_today_table0"
+        android:padding="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="195dp">
+
+        <TableLayout
+
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/today_table"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="*">
+
+        </TableLayout>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/tv_notice0"
+        android:layout_below="@id/table"
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold"
+        android:text="@string/notice0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <ScrollView
+        android:paddingStart="10dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="10dp"
+        android:layout_below="@id/tv_notice0"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        tools:ignore="RtlSymmetry">
+
+        <TextView
+            android:id="@+id/tv_notice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="暂无" />
+
+    </ScrollView>
+
+
 
 
 </RelativeLayout>

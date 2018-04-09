@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.xrs.yuh.PersonalPerformance">
+    <item
+        android:id="@+id/Performance_time_change0"
+        android:title="@string/_2014_2"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/Performance_time_change1"
+        android:title="@string/_2015_1"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/Performance_time_change2"
+        android:title="@string/_2015_2"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/Performance_time_change3"
+        android:title="@string/_2016_1"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/Performance_time_change4"
+        android:title="@string/_2016_2"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/Performance_time_change5"
+        android:title="@string/_2017_1"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/Performance_time_change6"
+        android:title="@string/_2017_2"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/Performance_time_change7"
+        android:title="@string/all"
+        app:showAsAction="never" />
+</menu>

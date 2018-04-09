@@ -5,5 +5,9 @@
     <color name="colorAccent">#FF4081</color>
 
     <!--<color name=""-->
+    <color name="color_spring_green">#00cd66</color>
+    <color name="color_white">#ffff</color>
+    <color name="color_blue">#6495ed</color>
+
 
 </resources>

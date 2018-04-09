@@ -12,27 +12,23 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-        android:name=".Data"
-        android:label="@string/app_name"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".LoginActivity"
-            android:label="@string/app_name"
-            android:noHistory="true">
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar" />
+
         <activity
             android:name=".timetable.LessonLoadActivity"
             android:label="课表1"
@@ -52,11 +48,16 @@
             android:name=".timetable.Lesson2LoadActivity"
             android:label="课表2"
             android:theme="@style/AppTheme" />
-
         <activity
             android:name=".Calculator"
             android:label="@string/title_activity_calculator"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".score.PersonalPerformance"
+            android:label="成绩查询"
+            android:theme="@style/AppTheme" />
+        <activity android:name=".ChangePasswordActivity" />
+
     </application>
 
 </manifest>
