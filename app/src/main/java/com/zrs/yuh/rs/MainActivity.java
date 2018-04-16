@@ -1,13 +1,15 @@
 package com.zrs.yuh.rs;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,6 +24,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,10 +46,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,9 +80,9 @@ public class MainActivity extends AppCompatActivity
     protected static final int ERROR_SIGN_IN = 4;
 
     protected static final int SUCCESS_SIGN_IN = 3;
+    protected static final int NEW = 5;
 
-    private TextView tv_name,tv_notice,tv_today_table0;
-
+    private TextView tv_name,tv_notice,tv_today_table0,tv_today_table_before,tv_today_table_now,tv_today_table_late;
 
     private AlertDialog dialog;
     private ProgressDialog progressDialog;
@@ -98,6 +102,45 @@ public class MainActivity extends AppCompatActivity
             super.handleMessage(msg);
 
             switch (msg.what ){
+                case NEW:
+
+                    String update_results = (String) msg.obj;
+
+                    Document document = Jsoup.parse(update_results);
+
+                    String version = "1.2";
+                    String version0 = document.getElementsByClass("list_app_info").text();
+
+                    String update_info = document.getElementsByClass("apk_left_title_info").first().toString();
+                    if (!version0.equals(version)) {
+
+                        Toast.makeText(MainActivity.this, "发现最新版本！!", Toast.LENGTH_LONG).show();
+
+                        AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).create();
+                        dialog.setTitle("小小一棵树");
+                        dialog.setMessage(version0 + "更新内容:\n" + update_info.substring(31).replaceAll("<br>","\n"));
+                        dialog.setButton(AlertDialog.BUTTON_POSITIVE, "前往更新",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Uri uri = Uri.parse("https://www.coolapk.com/apk/com.zrs.yuh.rs");
+                                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                                        startActivity(intent);
+                                    }
+                                });
+                        dialog.setButton(AlertDialog.BUTTON_NEGATIVE, "取消",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                });
+                        dialog.show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "已是最新版本！!", Toast.LENGTH_LONG).show();
+                    }
+
+                    break;
 
                 case CHANGE_UI:
 
@@ -106,6 +149,7 @@ public class MainActivity extends AppCompatActivity
 
                     byte[] Picture = (byte[]) msg.obj; //使用BitmapFactory工厂，把字节数组转化为bitmap
                     Bitmap bitmap = BitmapFactory.decodeByteArray(Picture, 0, Picture.length);
+
                     dismissProgressDialog();
 
                     et_user = view.findViewById(R.id.et_user_2);
@@ -195,10 +239,21 @@ public class MainActivity extends AppCompatActivity
                         get_captcha();
 
                     }else {
+
                         String name = elements0.select("span").get(0).text();
-                        Log.d("姓名",name);
+
+                        ArrayList name_list = new ArrayList();
+                        Course course_name = new Course();
+                        course_name.setClassName(name);
+                        name_list.add(course_name);
+                        boolean name_true  = Utils.saveCourseInfo(MainActivity.this,"name",name_list);
+                        if (name_true){
+                            Log.d("姓名",name);
+                        }
+
                         Toast.makeText(MainActivity.this,"欢迎" + name + "登录",Toast.LENGTH_SHORT).show();
                         tv_name.setText(name);
+
 
                         List<Course> list_name = Utils.getCourseInfo(MainActivity.this,"cookies");
                         if (list_name!=null) {
@@ -223,10 +278,20 @@ public class MainActivity extends AppCompatActivity
                         get_captcha();
 
                     }else {
+
                         String notice = notice_elements.toString().replaceAll("<br>", "\n").replaceAll("<div class=\"content\">", "").replaceAll("</div>", "");
 //                        Utils.saveCourseInfo(MainActivity.this,notice,"")
-                        Log.d("公告", notice);
                         tv_notice.setText(notice);
+
+                        ArrayList notice_list = new ArrayList();
+                        Course course_notice = new Course();
+                        course_notice.setClassName(notice);
+                        notice_list.add(course_notice);
+                        boolean notice1 = Utils.saveCourseInfo(MainActivity.this, "notice", notice_list);
+                        if (notice1){
+                            Log.d("公告",notice);
+                        }
+
                     }
                     break;
                 default:
@@ -240,6 +305,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        update();
+
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -260,23 +327,167 @@ public class MainActivity extends AppCompatActivity
         tv_name = headerLayout.findViewById(R.id.tv_name1);
         tv_notice = findViewById(R.id.tv_notice);
         tv_today_table0 = findViewById(R.id.tv_today_table0);
+        tv_today_table_before = findViewById(R.id.tv_today_table_before);
+        tv_today_table_now = findViewById(R.id.tv_today_table_now);
+        tv_today_table_late = findViewById(R.id.tv_today_table_late);
 
-        TableMain();
+
+        final int today_week = now_week();
+        Calendar c_now = Calendar.getInstance();
+        int USA = c_now.get(Calendar.DAY_OF_WEEK);
+        final int todayzhou;
+        if (USA == 1) {
+            todayzhou = 7;
+        } else {
+            todayzhou = USA - 1;
+        }
+
+        ArrayList list_BNL = new ArrayList();
+        Course course_BNL = new Course();
+
+        course_BNL.setSpanNum(todayzhou);
+        course_BNL.setJieci(today_week);
+
+        list_BNL.add(course_BNL);
+        Utils.saveCourseInfo(MainActivity.this,"now_day",list_BNL);
+
+        TableMain(today_week,todayzhou);
+
+        tv_today_table_before.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                List<Course> list_B = Utils.getCourseInfo(MainActivity.this,"now_day");
+                if (list_B!=null){
+
+                    int now_day = list_B.get(0).getSpanNum() - 1;
+                    int now_week = list_B.get(0).getJieci();
+                    if (now_day==0){
+                        now_day = 7;
+                        now_week = now_week - 1;
+                        if (now_week==0){
+                            now_week = 18;
+                        }
+                    }
+
+                    TableMain(now_week ,now_day);
+
+                    ArrayList list_B0 = new ArrayList();
+                    Course course_B0 = new Course();
+
+                    course_B0.setJieci(now_week);
+                    course_B0.setSpanNum(now_day);
+
+                    list_B0.add(course_B0);
+                    Utils.saveCourseInfo(MainActivity.this,"now_day",list_B0);
 
 
-        List<Course> list1 = Utils.getCourseInfo(this,"cookies");
-        if(list1==null){
+                }
+            }
+        });
+        tv_today_table_now.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                TableMain(today_week,todayzhou);
+
+                ArrayList list_BNL = new ArrayList();
+                Course course_BNL = new Course();
+
+                course_BNL.setJieci(today_week);
+                course_BNL.setSpanNum(todayzhou);
+
+                list_BNL.add(course_BNL);
+                Utils.saveCourseInfo(MainActivity.this,"now_day",list_BNL);
+
+            }
+        });
+        tv_today_table_late.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                List<Course> list_L = Utils.getCourseInfo(MainActivity.this,"now_day");
+                if (list_L!=null){
+
+                    int now_day = list_L.get(0).getSpanNum() + 1;
+                    int now_week = list_L.get(0).getJieci();
+                    if (now_day==8){
+                        now_day = 1;
+                        now_week = now_week + 1;
+                        if (now_week==19){
+                            now_week = 1;
+                        }
+                    }
+                    TableMain(now_week,now_day);
+
+                    ArrayList list_L0 = new ArrayList();
+                    Course course_L0 = new Course();
+
+                    course_L0.setJieci(now_week);
+                    course_L0.setSpanNum(now_day);
+
+                    list_L0.add(course_L0);
+                    Utils.saveCourseInfo(MainActivity.this,"now_day",list_L0);
+
+
+                }
+            }
+        });
+
+
+
+        //有名字的话，就不再登陆，直接载入
+
+        List<Course> list_name = Utils.getCourseInfo(this,"name");
+        if (list_name==null){
             get_captcha();
 
         }else {
-            String session = list1.get(0).getClassRoomName();
-            String url_name = "http://jwk.lzu.edu.cn/academic/showHeader.do";
-            String Referer = "http://jwk.lzu.edu.cn/academic/index_new.jsp";
-            Get_String(url_name,session,Referer);
+            tv_name.setText(list_name.get(0).getClassName());
+
+            //有公告的话，直接载入
+
+            List<Course> list_notice = Utils.getCourseInfo(this,"notice");
+
+            if (list_notice!=null){
+                tv_notice.setText(list_notice.get(0).getClassName());
+            }
         }
+
+
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main_login, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.login_main:
+                get_captcha();
+
+                break;
+
+            case R.id.about_main:
+                Intent intent = new Intent(MainActivity.this,About.class);
+                startActivity(intent);
+
+                break;
+
+            default:
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     public void onBackPressed() {
@@ -326,16 +537,42 @@ public class MainActivity extends AppCompatActivity
 
             case R.id.nav_share:
                 //
-
-
+                Toast.makeText(MainActivity.this,"开发中……",Toast.LENGTH_LONG).show();
                 break;
 
             case R.id.nav_send:
                 //
-                Toast.makeText(MainActivity.this,"开发中……",Toast.LENGTH_LONG).show();
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+
+                builder.setTitle("联系开发者");
+                builder.setMessage("    请联系QQ1946991005，可点击直接跳转QQ或TIM，进入我的聊天界面(随风而去）,谢谢");
+                android.app.AlertDialog dialog = builder.create();
+                dialog.setButton(AlertDialog.BUTTON_POSITIVE, "跳转至QQ",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                if (checkApkExist(MainActivity.this, "com.tencent.mobileqq")){
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("mqqwpa://im/chat?chat_type=wpa&uin="+1946991005+"&version=1")));
+                                }else{
+                                    Toast.makeText(MainActivity.this,"本机未安装QQ或TIM应用",Toast.LENGTH_SHORT).show();
+                                }
+
+                            }
+                        });
+
+                dialog.setButton(AlertDialog.BUTTON_NEGATIVE, "取消",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        });
+                dialog.show();
                 break;
 
         }
+
 
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -343,15 +580,15 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public void write_file(String file, String week_name){
-        FileOutputStream outputStream;
+    public boolean checkApkExist(Context context, String packageName) {
+        if (packageName == null || "".equals(packageName))
+            return false;
         try {
-            outputStream = openFileOutput(week_name + ".txt", Context.MODE_PRIVATE);
-            outputStream.write(file.getBytes());
-            outputStream.flush();
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+            ApplicationInfo info = context.getPackageManager().getApplicationInfo(packageName,
+                    PackageManager.GET_UNINSTALLED_PACKAGES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
     }
 
@@ -498,17 +735,7 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-        public void showCouseDetails (String about, Activity activity){
-            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
 
-            String About = "    此软件为个人开发，将兰州大学教务系统的一些网页操作移动到了手机端。、\n" +
-                    "    第一次发布软件，感谢同学们的帮忙测试，物理院（2017、2016级）、资环院（2017级）、生科院（2017级）、外语院（2016级）、药学院（2017级）、已经测试过。" +
-                    "但是，由于教务系统中存在太多稀奇古怪的课程和一些任选课，因此，可能会在导入课程表时出现闪退，等问题";
-            builder.setTitle("关于");
-            builder.setMessage(About);
-            android.app.AlertDialog dialog = builder.create();
-            dialog.show();
-        }
 
         public void Get_String (String url, String session, String Referer){
             OkHttpClient client = new OkHttpClient
@@ -614,7 +841,7 @@ public class MainActivity extends AppCompatActivity
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             }
             progressDialog.setMessage(text);    //设置内容
-            progressDialog.setCancelable(false);//点击屏幕和按返回键都不能取消加载框
+            progressDialog.setCancelable(true);//点击屏幕和按返回键都不能取消加载框
             progressDialog.show();
 
             //设置超时自动消失
@@ -627,7 +854,7 @@ public class MainActivity extends AppCompatActivity
                         Toast.makeText(MainActivity.this, dismiss_text, Toast.LENGTH_SHORT).show();
                     }
                 }
-            }, 10000);//超时时间10秒
+            }, 30000);//超时时间10秒
         }
         public Boolean dismissProgressDialog () {
             if (progressDialog != null) {
@@ -640,22 +867,19 @@ public class MainActivity extends AppCompatActivity
         }
 
     @SuppressLint("SetTextI18n")
-    public void TableMain() {
-        int today_week = now_week();
+    public void TableMain(int today_week,int todayzhou) {
+
+        TableLayout layout = findViewById(R.id.today_table);
+        layout.removeAllViews();
+
         ArrayList list = new ArrayList();
         List<Course> list1 = Utils.getCourseInfo(this, "week_" + today_week);
         List<Course> list2 = Utils.getCourseInfo(this, "2_week_" + today_week);
+
+        //指定周的课程信息
         list.add(list1);
         list.add(list2);
-        Calendar c_now = Calendar.getInstance();
 
-        int USA = c_now.get(Calendar.DAY_OF_WEEK);
-        int todayzhou;
-        if (USA == 1) {
-            todayzhou = 7;
-        } else {
-            todayzhou = USA - 1;
-        }
 
         tv_today_table0.setText("今日课程" + "（第" + String.valueOf(today_week) + "周,周" + String.valueOf(todayzhou) + "）");
 
@@ -676,6 +900,8 @@ public class MainActivity extends AppCompatActivity
 
                     if (c1.getDay() == todayzhou) {
 
+                        //此周中，星期几符合的课程信息添加到Performance对应的对象中
+
                         int time_start = c1.getJieci();
                         int time_end = c1.getJieci() + c1.getSpanNum() - 1;
 
@@ -684,15 +910,14 @@ public class MainActivity extends AppCompatActivity
                         performance1.setCourseName(c1.getClassName());
                         performance1.setCourseProperty(c1.getClassRoomName());
                         performance1.setPass(String.valueOf(time_start) + "-" + String.valueOf(time_end));
+                        performance1.setCourseNum(time_start);
                         today_lesson.add(performance1);
+                        //集中到今天的列表中
 
                     }
 
 
                 }
-
-
-                TableLayout layout = findViewById(R.id.today_table);
 
                 TableLayout.LayoutParams layoutParam = new TableLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -705,11 +930,17 @@ public class MainActivity extends AppCompatActivity
                 layoutParam.gravity = 20;
                 int flag = 0;
 
+                //用于排序
+                Collections.sort(today_lesson,new SortByTime());
+
+                Utils.savePerformanceInfo(MainActivity.this, "today_lesson", today_lesson);
+
+
                 for (final Performance performance0 : (List<? extends Performance>) today_lesson) { // 循环设置表格行
 
                     if (flag == 0) {
-                        TableRow row0 = new TableRow(this); // 定义表格行
 
+                        TableRow row0 = new TableRow(this); // 定义表格行
 
                         int blue = getResources().getColor(colorPrimary);
                         row0.setBackgroundColor(blue);
@@ -721,16 +952,41 @@ public class MainActivity extends AppCompatActivity
 
                         layout.addView(row0); // 向表格之中增加若干个表格行
 
-
                         flag++;
 
                     } else {
 
                         TableRow row = new TableRow(this); // 定义表格行
+                        row.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                showCouseDetails(performance0.getCourseName(),
+                                        "地点：" + performance0.getCourseProperty() +   "\n" +
+                                                "时间：" + performance0.getPass() + "节课");
+                            }
+                        });
                         int blue = getResources().getColor(colorPrimary);
 
-                        row.addView(draw_socre(performance0.getCourseName(), blue), 0); // 加入一个编号
-                        row.addView(draw_socre(performance0.getCourseProperty(), blue), 1); // 加入一个编号
+                        String course_name0;
+                        if (performance0.getCourseName().length()>8){
+                            course_name0 = performance0.getCourseName().substring(0,7) + "…";
+                        }else {
+                            course_name0 = performance0.getCourseName();
+                        }
+
+                        row.addView(draw_socre(course_name0, blue), 0); // 加入一个编号
+
+
+                        String Course_Property;
+                        if (performance0.getCourseProperty().length()>5){
+                            Course_Property = performance0.getCourseProperty().substring(0,4) + "…";
+                        }else {
+                            Course_Property = performance0.getCourseProperty();
+                        }
+
+                        row.addView(draw_socre(Course_Property, blue), 1); // 加入一个编号
+
+
                         row.addView(draw_socre(performance0.getPass(), blue), 2); // 加入一个编号
 
                         layout.addView(row); // 向表格之中增加若干个表格行
@@ -740,6 +996,15 @@ public class MainActivity extends AppCompatActivity
         }
 
 
+    }
+
+    class SortByTime implements Comparator {
+        public int compare(Object o1, Object o2) {
+            Performance p1 = (Performance) o1;
+            Performance p2 = (Performance) o2;
+            if (p1.getCourseNum()>=p2.getCourseNum())return 1;return -1;
+
+        }
     }
 
 
@@ -772,6 +1037,59 @@ public class MainActivity extends AppCompatActivity
         return weeks;
 
     }
+
+    public void showCouseDetails (String course_name,String other){
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+
+        builder.setTitle(course_name);
+        builder.setMessage(other);
+        android.app.AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public void update(){
+        OkHttpClient client = new OkHttpClient
+                .Builder()
+                .connectTimeout(100, TimeUnit.SECONDS) //设置连接超时
+                .readTimeout(100, TimeUnit.SECONDS) //设置读超时
+                .writeTimeout(100, TimeUnit.SECONDS) //设置写超时
+                .retryOnConnectionFailure(true) //是否自动重连
+                .build(); //构建OkHttpClient对象
+
+        Request captcha_response = new Request.Builder()
+                .url("https://www.coolapk.com/apk/com.zrs.yuh.rs")
+                .addHeader("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0")
+                .build();
+
+        Call captcha_pic = client.newCall(captcha_response);
+        captcha_pic.enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.i("info_callFailure", e.toString());
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    assert response.body() != null;
+                    String results = response.body().string();
+//                    Log.i("info_name_success", results);
+
+                    if (!Objects.equals(results, "")) {
+                        Log.d("----------------", results);
+                        Message msg = new Message();
+                        msg.what = NEW;
+                        msg.obj = results;
+                        handler.sendMessage(msg);
+                    }
+
+                }
+
+            }
+        });
+    }
+
+
 
 
 }

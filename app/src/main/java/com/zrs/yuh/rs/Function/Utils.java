@@ -6,20 +6,13 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.zrs.yuh.rs.score.Performance;
 import com.zrs.yuh.rs.timetable.Course;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -65,8 +58,8 @@ public class Utils {
         editor.apply();
 
         return true;
-
     }
+
     public static List<Course> getCourseInfo(Context context, String name){
         SharedPreferences preferences = context.getSharedPreferences(name, MODE_PRIVATE);
         String json = preferences.getString(name, null);
@@ -78,6 +71,33 @@ public class Utils {
             course = gson.fromJson(json, type);
         }
         return course;
+    }
+
+
+    // 课程信息
+    public static boolean savePerformanceInfo(Context context, String name, List<Performance> performance ){
+
+        SharedPreferences.Editor editor = context.getSharedPreferences(name, MODE_PRIVATE).edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(performance);
+        Log.d(name, "saved json is " + name + json);
+        editor.putString(name, json);
+        editor.apply();
+
+        return true;
+    }
+
+    public static List<Performance> getPerformanceInfo(Context context, String name){
+        SharedPreferences preferences = context.getSharedPreferences(name, MODE_PRIVATE);
+        String json = preferences.getString(name, null);
+        List<Performance> performance = null;
+        if (json != null)
+        {
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<Performance>>(){}.getType();
+            performance = gson.fromJson(json, type);
+        }
+        return performance;
     }
 
 

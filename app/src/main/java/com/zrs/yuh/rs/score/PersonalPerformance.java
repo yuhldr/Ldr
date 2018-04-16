@@ -1,7 +1,6 @@
 package com.zrs.yuh.rs.score;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -173,7 +172,14 @@ public class PersonalPerformance extends AppCompatActivity {
                 TableRow row = new TableRow(this); // 定义表格行
                 int blue = getResources().getColor(colorPrimary);
 
-                row.addView(draw_socre(performance.getCourseName(), blue), 0); // 加入一个编号
+                String lesson_name;
+                if (performance.getCourseName().length()>8){
+                    lesson_name = performance.getCourseName().substring(0,7) + "…";
+                }else {
+                    lesson_name = performance.getCourseName();
+                }
+
+                row.addView(draw_socre(lesson_name, blue), 0); // 加入一个编号
                 row.addView(draw_socre(performance.getTerminal(), blue), 1); // 加入一个编号
                 row.addView(draw_socre(performance.getGeneralComment(), blue), 2); // 加入一个编号
                 row.addView(draw_socre(performance.getCredit(), blue), 3); // 加入一个编号
@@ -443,9 +449,6 @@ public class PersonalPerformance extends AppCompatActivity {
                 if (Course.size() == 18) {
                     String lesson_name = Course.get(3).text();
 
-                    if (lesson_name.length()>8){
-                        lesson_name = lesson_name.substring(0,7) + "…";
-                    }
                     performance.setCourseName(lesson_name);
                     performance.setDailyPerformance(Course.get(5).text());
                     performance.setMidterm(Course.get(6).text());

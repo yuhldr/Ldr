@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:text="@string/TExperimentalData"
         android:textColor="@color/colorPrimary"
-        android:textStyle="bold|italic" />
+        android:textStyle="bold" />
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:text="@string/TMinimumScaleValue"
         android:textColor="@color/colorPrimary"
-        android:textStyle="bold|italic" />
+        android:textStyle="bold" />
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"

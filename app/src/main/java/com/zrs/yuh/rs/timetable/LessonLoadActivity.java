@@ -89,6 +89,8 @@ public class LessonLoadActivity extends AppCompatActivity {
             Refresh();
         }
 
+
+
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -107,6 +109,7 @@ public class LessonLoadActivity extends AppCompatActivity {
             case R.id.refresh:
                 Refresh();
                 break;
+//           下滑刷新代替
 
             case R.id.get_week_two:
                 Intent intent = new Intent(LessonLoadActivity.this,Lesson2LoadActivity.class);
@@ -408,9 +411,7 @@ public class LessonLoadActivity extends AppCompatActivity {
         for (int i = 0; i < course_n; i++) {
 
             course_name[i] = lessons.get(i).select("td").get(2).text();
-            if (course_name[i].length()>8){
-                course_name[i] = course_name[i].substring(0,7) + "…";
-            }
+
 //            Log.d("课程名：", course_name[i]);
 
             Elements course_teachers = lessons.get(i).select("td").get(3).select("a");
@@ -447,9 +448,16 @@ public class LessonLoadActivity extends AppCompatActivity {
                 String lesson_name = course_name[i];
                 String lesson_credit = course_credit[i];
 
+                String course_name0;
+                if (course_name[i].length()>8){
+                    course_name0 = course_name[i].substring(0,7) + "…";
+                }else {
+                    course_name0 = course_name[i];
+                }
+
 
                 String ClassAll0 =
-                        course_name[i] + "\n" +
+                        course_name0 + "\n" +
                                 course_teacher[i] + "\n" +
                                 "学分：" + course_credit[i] + "\n";
                 for (int k = 0; k < week_n; k++) {
@@ -474,9 +482,7 @@ public class LessonLoadActivity extends AppCompatActivity {
 //                Log.d("上课周几：", course_week[i][k]);
 
                     course_time[i][k] = week_num.get(k).select("td").get(2).text();
-                    if (course_time[i][k].isEmpty()) {
-                        course_time[i][k] = "暂无";
-                    }
+
 //                  Log.d("上课时间：", course_time[i][k]);
 
                     int span_num = 0;
@@ -728,7 +734,7 @@ public class LessonLoadActivity extends AppCompatActivity {
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         }
         progressDialog.setMessage(text);    //设置内容
-        progressDialog.setCancelable(false);//点击屏幕和按返回键都不能取消加载框
+        progressDialog.setCancelable(true);//点击屏幕和按返回键都不能取消加载框
         progressDialog.show();
 
         //设置超时自动消失
@@ -741,7 +747,7 @@ public class LessonLoadActivity extends AppCompatActivity {
                     Toast.makeText(LessonLoadActivity.this, dismiss_text, Toast.LENGTH_SHORT).show();
                 }
             }
-        }, 10000);//超时时间10秒
+        }, 30000);//超时时间10秒
     }
     public Boolean dismissProgressDialog() {
         if (progressDialog != null){

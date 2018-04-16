@@ -58,8 +58,6 @@ public class ChangePasswordActivity extends AppCompatActivity {
                     break;
 
                 case SUCCESS_CHANGE:
-                    String success_change_password = (String) msg.obj;
-
                     tv_change_password = findViewById(R.id.tv_change_password);
                     tv_change_password.setText("修改成功");
                     dismissProgressDialog();
@@ -93,6 +91,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
                     String old_password = et_old_password.getText().toString().trim();
                     String new_password_1 = et_new_password_1.getText().toString().trim();
                     String new_password_2 = et_new_password_2.getText().toString().trim();
+
                     PostChangePassword(old_password, new_password_1, new_password_2, session);
                 }
             });
@@ -149,13 +148,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
                     String result;
                     Document doc = Jsoup.parse(results);
                     Elements elements = doc.getElementsByClass("error");
-                    //错误提示： 您输入的验证码不正确(密码可能也不正确！!
-                    // 错误提示： 密码不匹配!
                     result = elements.text();
-
-//                        Elements elements = doc.select("body");
-//                        String result = elements.get(0).text();
-
                     Message msg =new Message();
                     if(!Objects.equals(result, "")){
                         Log.d("----------------",result);
@@ -163,13 +156,10 @@ public class ChangePasswordActivity extends AppCompatActivity {
                         msg.obj = result;
                     }else {
                         Log.d("================","成功");
-                        Document document = Jsoup.parse(result);
+                        Document document = Jsoup.parse(results);
                         if (document.select("script").size()==1) {
                             msg.what = SUCCESS_CHANGE;
-                            msg.obj = result;
-                        }else {
-                            msg.obj = document.text();
-                            msg.what = ERROR_CHANGE;
+                            msg.obj = results;
                         }
                     }
                     handler.sendMessage(msg);

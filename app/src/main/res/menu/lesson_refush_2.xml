@@ -1,8 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.xrs.yuh.myapplication.MainActivity">
-
+    tools:context="com.zrs.yuh.rs.timetable.Lesson2LoadActivity">
 
     <item
         android:id="@+id/refresh_2"

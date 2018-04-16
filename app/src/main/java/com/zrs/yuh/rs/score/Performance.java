@@ -28,12 +28,13 @@ public class Performance implements Serializable {
 //    private String CorrosionTest; //是否缓考
 //    private String Minor; //二学位/辅修
     private String Pass ; //及格标志
+    private int CourseNum;
 
 
 
     public Performance(String CourseName, String DailyPerformance, String Midterm,
                        String Terminal, String GeneralComment, String Credit,
-                       String CourseProperty, String Pass) {
+                       String CourseProperty, String Pass, int num) {
         this.CourseName = CourseName;
         this.DailyPerformance = DailyPerformance;
         this.Midterm = Midterm;
@@ -42,6 +43,8 @@ public class Performance implements Serializable {
         this.Credit = Credit;
         this.CourseProperty = CourseProperty;
         this.Pass = Pass;
+
+        this.CourseNum = CourseNum;
     }
 
     public Performance() {
@@ -111,5 +114,12 @@ public class Performance implements Serializable {
     }
 
 
+
+    public int getCourseNum() {
+        return CourseNum;
+    }
+    public void setCourseNum(int courseNum) {
+        this.CourseNum = courseNum;
+    }
 
 }

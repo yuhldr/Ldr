@@ -1,10 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.xrs.yuh.myapplication.MainActivity">
+    tools:context="com.zrs.yuh.rs.timetable.LessonLoadActivity">
     <item
         android:id="@+id/get_week_two"
-        android:title="切换课表"
+        android:title="@string/change_table"
         app:showAsAction="ifRoom" />
 
     <item

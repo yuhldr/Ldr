@@ -68,7 +68,7 @@
     <string name="bt_time_table">直接进入课程表</string>
     <string name="TVUncertaintyResult">计算结果：</string>
     <string name="calculate_about">计算说明</string>
-    <string name="change_password_info">说明： 密码不能包含大于符号、小于符号、引号、中文、全角字符，前后也不能有空格！密码必须大于等于6个字符，并且包含字母和数字！</string>
+    <string name="change_password_info">说明</string>
     <string name="title_activity_settings">Settings</string>
 
 
@@ -89,6 +89,14 @@
     <string name="_2017_1">2017年春</string>
     <string name="_2017_2">2017年秋</string>
     <string name="all">全部学年</string>
+    <string name="login_1">登陆</string>
+    <string name="about">关于</string>
+    <string name="about_main">关于</string>
+    <string name="_right"><![CDATA[>]]></string>
+    <string name="_now_">o</string>
+    <string name="_left_"><![CDATA[<]]></string>
+    <string name="title_activity_about">关于</string>
+    <string name="change_table">切换课表</string>
 
 
 </resources>
