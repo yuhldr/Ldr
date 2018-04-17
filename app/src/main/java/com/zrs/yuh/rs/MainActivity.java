@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity
                                 });
                         dialog.show();
                     } else {
-                        Toast.makeText(MainActivity.this, "已是最新版本！!", Toast.LENGTH_LONG).show();
+                        Log.d("版本=======》","已是最新版本！!");
                     }
 
                     break;
